@@ -31,6 +31,8 @@ install.packages('WDQS')
 library(WDQS)
 install.packages('WikidataQueryServiceR')
 library(WikidataQueryServiceR)
+install.packages('caTools')
+library('caTools')
 
 ```
 
@@ -101,9 +103,16 @@ psv:P2102/wikibase:quantityUnit  ?bpUnit         ] .
 SERVICE wikibase:label { bd:serviceParam wikibase:language "[AUTO_LANGUAGE],en". } }')
 ```
 
+Splitting the data into testset and trainingset
+```{r}
+sample = sample.split(query_new2, SplitRatio = 3/4)
+training_set = subset(query_new2, sample == TRUE)
+test_set = subset(query_new2, sample == FALSE)
+```
+
 descriptors 
 ```{r}
-parsed_smiles <- parse.smiles(query_new2$CC, kekulise=TRUE) # changes it into a format IAtomContainer
+parsed_smiles <- parse.smiles(training_set$CC, kekulise=TRUE) # changes it into a format IAtomContainer
 
 descNames <- c(
 'org.openscience.cdk.qsar.descriptors.molecular.FragmentComplexityDescriptor',
@@ -116,9 +125,12 @@ descs <- eval.desc(parsed_smiles, descNames)
 ```
 
 ``` {r}
-model <- plsr(query_new2$bp ~ descs$WPATH)
+
+model <- plsr(bp ~ ., data = training_set, validation = "CV") # creates a model for each component
+# intercept is the null moplot(model)
+
 # voorspellen op basis van je testdata
-predict <- predict(model, descs)
-plot(predict)
+predict <- predict(model, test_set) # 
+plot(predict, test_set$bp)
 ```
 
