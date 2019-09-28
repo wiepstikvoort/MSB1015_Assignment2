@@ -123,9 +123,20 @@ WHERE {
 SERVICE wikibase:label { bd:serviceParam wikibase:language 'en' }
 })
 ```
+
+
+``` {r}
+query_new2 <- query_wikidata('SELECT ?comp ?compLabel ?bp ?bpUnit ?bpUnitLabel ?CC
+WHERE {   
+?comp wdt:P31/wdt:P279* wd:Q41581 ;       wdt:P233 ?CC  ;
+p:P2102 [ ps:P2102 ?bp ;  
+psv:P2102/wikibase:quantityUnit  ?bpUnit         ] .  
+SERVICE wikibase:label { bd:serviceParam wikibase:language "[AUTO_LANGUAGE],en". } }')
+```
+
 descriptors 
 ```{r}
-parsed_smiles <- parse.smiles(query[,5], kekulise=TRUE)
+parsed_smiles <- parse.smiles(query_new2$CC, kekulise=TRUE) # changes it into a format IAtomContainer
 
 descNames <- c(
 'org.openscience.cdk.qsar.descriptors.molecular.FragmentComplexityDescriptor',
@@ -134,8 +145,6 @@ descNames <- c(
 )
 
 descs <- eval.desc(parsed_smiles, descNames)
+
 ```
 
-
-
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
