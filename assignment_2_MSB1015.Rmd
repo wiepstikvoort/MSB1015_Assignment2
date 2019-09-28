@@ -31,18 +31,10 @@ install.packages('WDQS')
 library(WDQS)
 install.packages('WikidataQueryServiceR')
 library(WikidataQueryServiceR)
-```
-
-We will now try to do a query
-```{r eval=TRUE}
-data <- SPARQL(url="https://cdn.rawgit.com/maxlath/wikidata-sdk/dist/dist/wikibase-sdk.min.js",
-              query="SELECT ?alkaneLabel ?alkane 
-                        WHERE {
-                          VALUES ?alkane {wd:Q134192 wd:Q150429 wd:Q150440}
-                                  ?alkane wdt:P31/wdt:P279* wd:Q41581}" )
-
 
 ```
+
+
 new tryout of query
 ```{r library, echo=FALSE}
 endp <- "http://query.wikidata.org/"
@@ -67,31 +59,6 @@ df <- qd$results
 # SELECT ?alkaneLabel ?alkane WHERE {
 #             VALUES ?alkane {wd:Q134192 wd:Q150429 wd:Q150440} .
 #                     ?alkane wdt:P31/wdt:P279* wd:Q41581 .
-```
-This is an example with using 
-``` {r library, echo=FALSE}
-endpoint <- 'http://statistics.gov.scot/sparql'
-
-query <- 'PREFIX qb: <http://purl.org/linked-data/cube#>
-PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> 
-PREFIX sdmx: <http://purl.org/linked-data/sdmx/2009/concept#> 
-PREFIX data: <http://statistics.gov.scot/data/>
-PREFIX sdmxd: <http://purl.org/linked-data/sdmx/2009/dimension#>
-PREFIX mp: <http://statistics.gov.scot/def/measure-properties/>
-PREFIX stat: <http://statistics.data.gov.uk/def/statistical-entity#>
-SELECT ?areaname ?nratio ?yearname ?areatypename WHERE {
-?indicator qb:dataSet data:alcohol-related-discharge ;
-             sdmxd:refArea ?area ;
-             sdmxd:refPeriod ?year ;
-             mp:ratio ?nratio .
-?year rdfs:label ?yearname .
-  
-?area stat:code ?areatype ;
-      rdfs:label ?areaname .
-?areatype rdfs:label ?areatypename .
-}'
-
-qd <- SPARQL(endpoint,query)
 ```
 
 
@@ -146,5 +113,10 @@ descNames <- c(
 
 descs <- eval.desc(parsed_smiles, descNames)
 
+```
+
+``` {r}
+pls <- plsr(query_new2$bp ~ descs$WPATH, ncomp = 3)
+plot(pls)
 ```
 
