@@ -116,7 +116,9 @@ descs <- eval.desc(parsed_smiles, descNames)
 ```
 
 ``` {r}
-pls <- plsr(query_new2$bp ~ descs$WPATH, ncomp = 3)
-plot(pls)
+model <- plsr(query_new2$bp ~ descs$WPATH)
+# voorspellen op basis van je testdata
+predict <- predict(model, descs)
+plot(predict)
 ```
 
