@@ -33,70 +33,14 @@ install.packages('WikidataQueryServiceR')
 library(WikidataQueryServiceR)
 install.packages('caTools')
 library('caTools')
+library('ggplot2')
 
-```
-
-
-new tryout of query
-```{r library, echo=FALSE}
-endp <- "http://query.wikidata.org/"
-# prefix <- c("wd","<http://www.wikidata.org/entity/>",
-#             "wdt","<http://www.wikidata.org/prop/direct/>")
- 
-# create query statement
-q <- 'PREFIX wd: <http://www.wikidata.org/entity/>
-PREFIX wdt: <http://www.wikidata.org/prop/direct/>
-
-SELECT ?item ?itemLabel WHERE {
-?item wdt:P31 wd:Q2934 .
-SERVICE wikibase:label { bd:serviceParam wikibase:language "[AUTO_LANGUAGE],en". }
-}'
- 
-# Step 2 - Use SPARQL package to submit query and save results to a data frame
-# options <- "output=xml" 
-qd <- SPARQL(endp,q)
-df <- qd$results
-
-# 
-# SELECT ?alkaneLabel ?alkane WHERE {
-#             VALUES ?alkane {wd:Q134192 wd:Q150429 wd:Q150440} .
-#                     ?alkane wdt:P31/wdt:P279* wd:Q41581 .
-```
-
-
-Trying the new R package for retrieving data
-
-```{r}
-query <- query_wikidata('
-      SELECT DISTINCT ?alkane ?alkaneLabel ?boilingpoint ?unit ?smiles WHERE {
-          ?alkane (wdt:P31|wdt:P279) wd:Q11173;
-            rdfs:label ?alkaneLabel;
-            wdt:P2102 ?boilingpoint;
-            wdt:P233 ?smiles;
-  OPTIONAL {
-   # unit 
-    ?alkane p:P2102/psv:P2102 [  wikibase:quantityUnit       ?unit ].}
-          FILTER(STRENDS(?alkaneLabel, "ane"))
-          FILTER((LANG(?alkaneLabel)) = "en")
-        }')
-
-```
-New query that only contains linear alcanes
-```{r}
-query_new <- query_wikidata('
-SELECT ?anes ?anesLabel ?CC ?bp
-WHERE {
-?anes wdt:P31/wdt:P279* wd:Q41581 .
-?anes wdt:P233 ?CC .
-?anes wdt:P2102 ?bp .
-SERVICE wikibase:label { bd:serviceParam wikibase:language 'en' }
-})
 ```
 
 
 This is the correct query:
 ``` {r}
-query_new2 <- query_wikidata('SELECT ?comp ?compLabel ?bp ?bpUnit ?bpUnitLabel ?CC
+query_new2 <- query_wikidata('SELECT DISTINCT ?comp ?compLabel ?bp ?bpUnit ?bpUnitLabel ?CC
 WHERE {   
 ?comp wdt:P31/wdt:P279* wd:Q41581 ;       
 wdt:P233 ?CC  ;
@@ -120,12 +64,15 @@ celsius_kelvin <- function(celcius) {
 for (i in 1:length(query_new2$bpUnitLabel)) {
   if(query_new2$bpUnitLabel[i] == 'degree Celsius'){
       query_new2$bp[i] <- celsius_kelvin(query_new2$bp[i])
+      query_new2$bpUnitLabel[i] <- 'kelvin'
       }
   else if (query_new2$bpUnitLabel[i] == 'degree Fahrenheit'){
      query_new2$bp[i] <- fahrenheit_kelvin(query_new2$bp[i])
+     query_new2$bpUnitLabel[i] <- 'kelvin'
   }
 }
 
+plot.default(query_new2$bp)
 
 ```
 
@@ -135,6 +82,16 @@ sample = sample.split(query_new2, SplitRatio = 3/4)
 training_set = subset(query_new2, sample == TRUE)
 test_set = subset(query_new2, sample == FALSE)
 ```
+
+new method for splitting into test and training set
+```{r}
+data <- sort(sample(nrow(query_new2), nrow(query_new2)*.7))
+training_set<-query_new2[data,]
+
+#creating test data set by not selecting the output row values
+test_set<-query_new2[-data,]
+```
+
 
 descriptors 
 ```{r}
@@ -153,8 +110,10 @@ training <- cbind(training_set, descs)
 
 ``` {r}
 
-model <- plsr(bp ~ WPATH + fragC + apol + WPATH + WPOL + MDEC.12, data = training, validation = "CV") # creates a model for each component
-# intercept is the null moplot(model)
+model <- plsr(bp ~ WPATH + fragC + apol + WPATH + WPOL + MDEC.12, data = training, validation = "LOO") 
+
+plot(model, asp = 1, line = TRUE)
+
 
 parsed_smiles_test <- parse.smiles(test_set$CC, kekulise = TRUE)
 descs_test <- eval.desc(parsed_smiles_test, descNames)
@@ -163,8 +122,8 @@ plot(RMSEP(model), legendpos = "topright")
 
 test <- cbind(test_set, descs_test)
 
-# voorspellen op basis van je testdata
-predict <- predict(model, newdata = test) # 
+predict <- predict(model, ncomp = 3, newdata = test) # 
 plot(predict, test_set$bp)
+corcoef <- cor(predict, test_set$bp)
 ```
 
