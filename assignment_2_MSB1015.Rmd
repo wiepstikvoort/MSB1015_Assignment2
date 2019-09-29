@@ -127,7 +127,7 @@ training <- cbind(training_set, descs)
 
 ``` {r}
 
-model <- plsr(bp ~ ., data = training, validation = "CV") # creates a model for each component
+model <- plsr(bp ~ WPATH + fragC + apol + WPATH + WPOL + MDEC.12, data = training, validation = "CV") # creates a model for each component
 # intercept is the null moplot(model)
 
 parsed_smiles_test <- parse.smiles(test_set$CC, kekulise = TRUE)
