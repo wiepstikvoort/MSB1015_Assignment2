@@ -117,20 +117,28 @@ parsed_smiles <- parse.smiles(training_set$CC, kekulise=TRUE) # changes it into 
 descNames <- c(
 'org.openscience.cdk.qsar.descriptors.molecular.FragmentComplexityDescriptor',
 'org.openscience.cdk.qsar.descriptors.molecular.APolDescriptor',
-'org.openscience.cdk.qsar.descriptors.molecular.WienerNumbersDescriptor'
-)
+'org.openscience.cdk.qsar.descriptors.molecular.WienerNumbersDescriptor',
+'org.openscience.cdk.qsar.descriptors.molecular.MDEDescriptor')
 
 descs <- eval.desc(parsed_smiles, descNames)
+training <- cbind(training_set, descs)
 
 ```
 
 ``` {r}
 
-model <- plsr(bp ~ ., data = training_set, validation = "CV") # creates a model for each component
+model <- plsr(bp ~ ., data = training, validation = "CV") # creates a model for each component
 # intercept is the null moplot(model)
 
+parsed_smiles_test <- parse.smiles(test_set$CC, kekulise = TRUE)
+descs_test <- eval.desc(parsed_smiles_test, descNames)
+
+plot(RMSEP(model), legendpos = "topright")
+
+test <- cbind(test_set, descs_test)
+
 # voorspellen op basis van je testdata
-predict <- predict(model, test_set) # 
+predict <- predict(model, newdata = test) # 
 plot(predict, test_set$bp)
 ```
 
