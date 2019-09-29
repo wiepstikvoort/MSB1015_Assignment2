@@ -94,13 +94,39 @@ SERVICE wikibase:label { bd:serviceParam wikibase:language 'en' }
 ```
 
 
+This is the correct query:
 ``` {r}
 query_new2 <- query_wikidata('SELECT ?comp ?compLabel ?bp ?bpUnit ?bpUnitLabel ?CC
 WHERE {   
-?comp wdt:P31/wdt:P279* wd:Q41581 ;       wdt:P233 ?CC  ;
+?comp wdt:P31/wdt:P279* wd:Q41581 ;       
+wdt:P233 ?CC  ;
 p:P2102 [ ps:P2102 ?bp ;  
 psv:P2102/wikibase:quantityUnit  ?bpUnit         ] .  
 SERVICE wikibase:label { bd:serviceParam wikibase:language "[AUTO_LANGUAGE],en". } }')
+```
+
+There are still some compounds with their boiling points in degree celcius or fahrenheit. These need to be changed to kelvin:
+
+```{r}
+fahrenheit_kelvin <- function(fahrenheit) {
+  kelvin <- (fahrenheit + 459.67) * (5/9)
+  return(kelvin)
+}
+celsius_kelvin <- function(celcius) {
+  kelvin <- celcius + 293.15
+  return(kelvin)
+}
+
+for (i in 1:length(query_new2$bpUnitLabel)) {
+  if(query_new2$bpUnitLabel[i] == 'degree Celsius'){
+      query_new2$bp[i] <- celsius_kelvin(query_new2$bp[i])
+      }
+  else if (query_new2$bpUnitLabel[i] == 'degree Fahrenheit'){
+     query_new2$bp[i] <- fahrenheit_kelvin(query_new2$bp[i])
+  }
+}
+
+
 ```
 
 Splitting the data into testset and trainingset
