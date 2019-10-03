@@ -21,14 +21,9 @@ install.packages('rcdk')
 library(rcdk)
 install.packages('pls')
 library(pls)
-install.packages('XML')
-library(XML)
+
 library(RCurl)
-install.packages('rjson')
-library(rjson)
-library(httr)
-install.packages('WDQS')
-library(WDQS)
+
 install.packages('WikidataQueryServiceR')
 library(WikidataQueryServiceR)
 install.packages('caTools')
@@ -101,7 +96,8 @@ descNames <- c(
 'org.openscience.cdk.qsar.descriptors.molecular.FragmentComplexityDescriptor',
 'org.openscience.cdk.qsar.descriptors.molecular.APolDescriptor',
 'org.openscience.cdk.qsar.descriptors.molecular.WienerNumbersDescriptor',
-'org.openscience.cdk.qsar.descriptors.molecular.MDEDescriptor')
+'org.openscience.cdk.qsar.descriptors.molecular.MDEDescriptor',
+'org.openscience.cdk.qsar.descriptors.molecular.AtomCountDescriptor')
 
 descs <- eval.desc(parsed_smiles, descNames)
 training <- cbind(training_set, descs)
@@ -110,7 +106,7 @@ training <- cbind(training_set, descs)
 
 ``` {r}
 
-model <- plsr(bp ~ WPATH + fragC + apol + WPATH + WPOL + MDEC.12, data = training, validation = "LOO") 
+model <- plsr(bp ~ WPATH + fragC + apol + WPATH + WPOL + MDEC.12 + nAtom, data = training, validation = "LOO") 
 
 plot(model, asp = 1, line = TRUE)
 
@@ -121,9 +117,12 @@ descs_test <- eval.desc(parsed_smiles_test, descNames)
 plot(RMSEP(model), legendpos = "topright")
 
 test <- cbind(test_set, descs_test)
+error <- RMSEP(model, newdata = test)
+plot(error, legendpos = "topright")
 
 predict <- predict(model, ncomp = 3, newdata = test) # 
 plot(predict, test_set$bp)
 corcoef <- cor(predict, test_set$bp)
+print(error)
 ```
 
