@@ -4,10 +4,26 @@ Welcome to the repository of Assignment 2 for the course MSB1015 'Scientific Pro
 
 ### Research question
 #### Background information
+Harry Wiener wrote a paper on the correlation between chemical structure of compounds and their physical properties. He used the polarity number p, the pairs of carbon atoms which are separated by three C-C bonds, and the path number w, the sum of the distances between any two carbon atoms in the molecule in terms of C-C bonds, to create a prediction model. In this model p and w are descriptors of the molecules that he wanted to predict the boiling points of. Ofcourse back then there were less boiling points and descriptors of compounds known.  
+This project was based on his research. The research entailed to create a partial least squares (pls) model to predict the boiling points of alkanes through the use of SPARQL to query for chemical properties of alkanes on Wikidata, in an R markdown notebook. However, nowadays we have the luxury to choose more descriptors and create a model based on larger datasets. 
 
 #### Set up for methods
+The SPARQL query asks Wikidata to provide a list of alkanes (compounds that are either an entity or subclass of 'alkanes'):   
+?comp wdtP31/wdt:P279* wd:Q41581   
+and provide their canonical SMILES (P233) under column name CC  
+and their boiling points (P2102) accompanied by the unit that the boiling point is in.  
+Two functions were created to convert all boiling points into unit Kelvin. The for loop goes over all boiling points and converts the units that are in Celsius or Fahrenheit to Kelvin. The data retrieved from the query is then split into a test set (20%) and a training set (80%).  
+The SMILES are then parsed to generate a list of IAtomContainer objects, which can be used to evaluate a list of chosen descriptors. The classes of descriptors chosen are:
+- Fragment Complexity (the complexity of the compound)
+- APoldescriptor (sum of the atomic polarizibilities) 
+- Wiener Numbers Descriptors (the previously mentioned p and w)
+- MDE Descriptor (Molecular Distance Edge) 
+- Atom Count Descriptor (amount of atoms per element)  
+
+The descriptors are used to create a PLS model. However, not all descriptors from the different classes are used. Multiple descriptors from the MDE Descriptor class provide empty vectors, or hardly any values. Therefore, only descriptors which provide values for most of the compounds were used to create the PLS model. 
 
 ### How to run the code
+
 
 ### Sources used for template code
 The packages RCDK and WikidataQueryServiceR (WDQS) both had a package documentation available online. The documentation files can be found through the links below.
