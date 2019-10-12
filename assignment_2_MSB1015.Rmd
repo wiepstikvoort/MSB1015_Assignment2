@@ -61,6 +61,7 @@ for (i in 1:length(query$bpUnitLabel)) {
   }
 }
 
+# To check whether there are no more strange values, such as divergent units, in the dataset, a plot is created. This plot should show that all points are somewhat in the same range of values. 
 plot.default(query$bp)
 
 ```
@@ -76,9 +77,10 @@ test_set<-query[-data,]
 ```
 
 
-descriptors 
+Descriptors 
 ```{r}
-parsed_smiles <- parse.smiles(training_set$CC, kekulise=TRUE) # changes it into a format IAtomContainer
+# the parse.smiles function creates IAtomContainer objects out of SMILES. Kekulise = TRUE disables the function to parse incorrect SMILES. So only correct SMILES are parsed. 
+parsed_smiles <- parse.smiles(training_set$CC, kekulise=TRUE)
 
 descNames <- c(
 'org.openscience.cdk.qsar.descriptors.molecular.FragmentComplexityDescriptor',
@@ -94,7 +96,8 @@ training <- cbind(training_set, descs)
 
 ``` {r}
 
-model <- plsr(bp ~ WPATH + fragC + apol + WPATH + WPOL + MDEC.12 + nAtom, data = training, validation = "LOO") 
+
+model <- plsr(bp ~ WPATH  + fragC + apol + WPATH + WPOL + MDEC.12 + nAtom, data = training, validation = "LOO") 
 
 plot(model, asp = 1, line = TRUE)
 
@@ -115,6 +118,8 @@ print(error)
 ```
 
 ``` {r}
+# the query for the amino acids is not much different from the query for the alcanes, except for the fact that mass is now requested instead of boiling points
+
 query_amino_acids <- query_wikidata('SELECT DISTINCT ?comp ?compLabel ?mass ?massUnit ?massUnitLabel ?CC
 WHERE {   
 ?comp wdt:P31/wdt:P279* wd:Q8066 ;       
