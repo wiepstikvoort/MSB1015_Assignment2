@@ -4,25 +4,19 @@ author: "Wiep Stikvoort"
 date: "October 12, 2019"
 output: html_notebook
 ---
-rrdkit? <- r package
 rcdk vignet, multilinear regression model for boiling points
-github repository set up for assignment 2
 
 get the smiles and boiling points with the wikidataqueryserviceR package
 parse them with the rrdkit or the rcdk
 
 First, we need to load the packages needed for the query and the computations for the regression model. 
 ```{r setup, installing packages, echo=FALSE}
-install.packages('SPARQL')
-library(SPARQL)
 install.packages('rJava')
 library(rJava)
 install.packages('rcdk')
 library(rcdk)
 install.packages('pls')
 library(pls)
-
-library(RCurl)
 
 install.packages('WikidataQueryServiceR')
 library(WikidataQueryServiceR)
@@ -71,14 +65,8 @@ plot.default(query$bp)
 
 ```
 
-Splitting the data into testset and trainingset
-```{r}
-sample = sample.split(query, SplitRatio = 3/4)
-training_set = subset(query, sample == TRUE)
-test_set = subset(query, sample == FALSE)
-```
 
-new method for splitting into test and training set
+The data is split into test and training set. 80% of the data is used for the training set, the other 20% will then logically be part of the test set. 
 ```{r}
 data <- sort(sample(nrow(query), nrow(query)*.8))
 training_set<-query[data,]
