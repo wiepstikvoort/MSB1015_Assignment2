@@ -20,7 +20,10 @@ The SMILES are then parsed to generate a list of IAtomContainer objects, which c
 - MDE Descriptor (Molecular Distance Edge) 
 - Atom Count Descriptor (amount of atoms per element)  
 
-The descriptors are used to create a PLS model. However, not all descriptors from the different classes are used. Multiple descriptors from the MDE Descriptor class provide empty vectors, or hardly any values. Therefore, only descriptors which provide values for most of the compounds were used to create the PLS model. 
+The descriptors are used to create a PLS model. However, not all descriptors from the different classes are used. Multiple descriptors from the MDE Descriptor class provide empty vectors, or hardly any values. Therefore, only descriptors which provide values for most of the compounds were used to create the PLS model.   
+
+The PLS model is assessed using a Root Mean Square Error of Prediction (RMSEP) function. Using the RMSEP the number of components to create the model is evaluated. The RMSEP declines until ncomp = 3, after which the RMSEP stagnates, regardless of how many components are added. Using this information, the predict function is used to predict the boiling points of the test set, using the descriptors that were used to create the model with ncomp = 3. 
+The correlation coefficient was used to asses the accuracy of the predicted boiling points vs the test set. Depending on which compounds are randomly distributed over the training and test set per run of the file, the correlation coefficient reaches 0.99 usually.
 
 ### How to run the code
 
