@@ -10,6 +10,16 @@ Welcome to the repository of Assignment 2 for the course MSB1015 'Scientific Pro
 ## How to run the code
 
 ## Sources used for template code
+The packages RCDK and WikidataQueryServiceR (WDQS) both had a package documentation available online. The documentation files can be found through the links below.
+The rcdk package:
+https://cran.r-project.org/web/packages/rcdk/rcdk.pdf
+Version 3.4.7.1 of the rcdk package was used for this project.
+
+The WDQS package:
+https://cran.r-project.org/web/packages/WikidataQueryServiceR/WikidataQueryServiceR.pdf
+Version 0.1.1 of the WDQS package was used for this project.
+
+To create the correct queries, the lectures and computer practicals from the course MSB1015 Scientific Programming were used, as well as suggestions made by E. Willighagen. 
 
 ## List of author(s)
 Wiep Stikvoort
