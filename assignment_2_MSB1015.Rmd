@@ -1,7 +1,7 @@
 ---
 title: "Assignment_2_MSB1015"
 author: "Wiep Stikvoort"
-date: "September 23, 2019"
+date: "October 12, 2019"
 output: html_notebook
 ---
 rrdkit? <- r package
@@ -35,7 +35,7 @@ library('ggplot2')
 
 This is the correct query:
 ``` {r}
-query_new2 <- query_wikidata('SELECT DISTINCT ?comp ?compLabel ?bp ?bpUnit ?bpUnitLabel ?CC
+query <- query_wikidata('SELECT DISTINCT ?comp ?compLabel ?bp ?bpUnit ?bpUnitLabel ?CC
 WHERE {   
 ?comp wdt:P31/wdt:P279* wd:Q41581 ;       
 wdt:P233 ?CC  ;
@@ -56,35 +56,35 @@ celsius_kelvin <- function(celcius) {
   return(kelvin)
 }
 
-for (i in 1:length(query_new2$bpUnitLabel)) {
-  if(query_new2$bpUnitLabel[i] == 'degree Celsius'){
-      query_new2$bp[i] <- celsius_kelvin(query_new2$bp[i])
-      query_new2$bpUnitLabel[i] <- 'kelvin'
+for (i in 1:length(query$bpUnitLabel)) {
+  if(query$bpUnitLabel[i] == 'degree Celsius'){
+      query$bp[i] <- celsius_kelvin(query$bp[i])
+      query$bpUnitLabel[i] <- 'kelvin'
       }
-  else if (query_new2$bpUnitLabel[i] == 'degree Fahrenheit'){
-     query_new2$bp[i] <- fahrenheit_kelvin(query_new2$bp[i])
-     query_new2$bpUnitLabel[i] <- 'kelvin'
+  else if (query$bpUnitLabel[i] == 'degree Fahrenheit'){
+     query$bp[i] <- fahrenheit_kelvin(query$bp[i])
+     query$bpUnitLabel[i] <- 'kelvin'
   }
 }
 
-plot.default(query_new2$bp)
+plot.default(query$bp)
 
 ```
 
 Splitting the data into testset and trainingset
 ```{r}
-sample = sample.split(query_new2, SplitRatio = 3/4)
-training_set = subset(query_new2, sample == TRUE)
-test_set = subset(query_new2, sample == FALSE)
+sample = sample.split(query, SplitRatio = 3/4)
+training_set = subset(query, sample == TRUE)
+test_set = subset(query, sample == FALSE)
 ```
 
 new method for splitting into test and training set
 ```{r}
-data <- sort(sample(nrow(query_new2), nrow(query_new2)*.7))
-training_set<-query_new2[data,]
+data <- sort(sample(nrow(query), nrow(query)*.8))
+training_set<-query[data,]
 
 #creating test data set by not selecting the output row values
-test_set<-query_new2[-data,]
+test_set<-query[-data,]
 ```
 
 
@@ -126,3 +126,59 @@ corcoef <- cor(predict, test_set$bp)
 print(error)
 ```
 
+``` {r}
+query_amino_acids <- query_wikidata('SELECT DISTINCT ?comp ?compLabel ?mass ?massUnit ?massUnitLabel ?CC
+WHERE {   
+?comp wdt:P31/wdt:P279* wd:Q8066 ;       
+wdt:P233 ?CC  ;
+p:P2067 [ ps:P2067 ?mass ;  
+psv:P2067/wikibase:quantityUnit  ?massUnit         ] .  
+SERVICE wikibase:label { bd:serviceParam wikibase:language "[AUTO_LANGUAGE],en". } }')
+```
+All compound masses were expressed in the atomic mass unit, so no need for conversions. 
+
+```{r}
+data_aa <- sort(sample(nrow(query_amino_acids), nrow(query_amino_acids)*.8))
+training_set_aa<-query_amino_acids[data_aa,]
+
+#creating test data set by not selecting the output row values
+test_set_aa<-query_amino_acids[-data_aa,]
+```
+
+Descriptors 
+```{r}
+parsed_smiles_aa <- parse.smiles(training_set_aa$CC, kekulise=TRUE) # changes it into a format IAtomContainer
+
+descNames <- c(
+'org.openscience.cdk.qsar.descriptors.molecular.FragmentComplexityDescriptor',
+'org.openscience.cdk.qsar.descriptors.molecular.APolDescriptor',
+'org.openscience.cdk.qsar.descriptors.molecular.WienerNumbersDescriptor',
+'org.openscience.cdk.qsar.descriptors.molecular.MDEDescriptor',
+'org.openscience.cdk.qsar.descriptors.molecular.AtomCountDescriptor')
+
+descs_aa <- eval.desc(parsed_smiles_aa, descNames)
+training_aa <- cbind(training_set_aa, descs_aa)
+
+```
+
+``` {r}
+
+model_aa <- plsr(mass ~ WPATH + fragC + apol + WPATH + WPOL + MDEC.12 + nAtom, data = training_aa, validation = "LOO") 
+
+plot(model_aa, asp = 1, line = TRUE)
+
+
+parsed_smiles_test_aa <- parse.smiles(test_set_aa$CC, kekulise = TRUE)
+descs_test_aa <- eval.desc(parsed_smiles_test_aa, descNames)
+
+plot(RMSEP(model_aa), legendpos = "topright")
+
+test_aa <- cbind(test_set_aa, descs_test_aa)
+error_aa <- RMSEP(model_aa, newdata = test_aa)
+plot(error_aa, legendpos = "topright")
+
+predict_aa <- predict(model_aa, ncomp = 3, newdata = test_aa) # 
+plot(predict_aa, test_set_aa$bp)
+corcoef_aa <- cor(predict_aa, test_set_aa$mass)
+print(error_aa)
+```
