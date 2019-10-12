@@ -30,6 +30,7 @@ To assess the reproducibility of the code written to create the PLS model for th
 - The SPARQL query was adjusted to retrieve a list of amino acids and their mass
 - The functions for the conversion of Celsius and Fahrenheit to Kelvin were not used
 - The names were changed to be able to compare the outputs of the different models (but this was not necessary for the code to run)  
+
 The descriptors were kept the same, to be able to compare both models. This was not ideal, as the descriptors chosen for the boiling point model, were chosen specifically to include the chemical properties that contribute to a compound's boiling point. This second model was created to assess the reproducibility and robustness of the code and not the accuracy of the output. 
 The code has shown to be reproducible and robust. The model was created in little time and is able to predict an amino acid's mass with a correlation coefficient of >0.97 (depending on the distribution of the data over test and training set). The fact that the descriptors were not chosen to predict a compound's mass probably contributes to the fact that the RMSEP of the model keeps decreasing up to 5 components instead of 3. 
 
