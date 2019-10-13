@@ -13,6 +13,7 @@ Firstly, the libraries needed for the loading of the data, and for the computati
 ```{r setup, echo = FALSE, warning = FALSE, message = FALSE}
 # If the packages that are called inside the install.packages function are not yet installed on your computer, then please uncomment the line to do so
 # install.packages(c('rJava', 'rcdk', 'pls', 'WikidataQueryServiceR', 'caTools', 'ggplot2'));
+
 library(rJava)
 library(rcdk)
 library(pls)
@@ -100,6 +101,7 @@ model <- plsr(bp ~ WPATH  + fragC + apol + WPATH + WPOL + MDEC.12 + nAtom, data 
 plot(model, asp = 1, line = TRUE, xlab = "measured (in K)", ylab = "predicted (in K)")
 plot(RMSEP(model, estimate = "CV"), main = "Number of components per model \nset out against their RMSEP (of boiling points)")
 plot(model, "validation", val.type = "R2", main = "Number of components per model \nset out against their R^2")
+
 ```
 The RMSEP and R^2 graphs both show that 3 components yields a model that would not improve anymore by adding more components. The RMSEP does not decline anymore, and the R^2 does not increase anymore. Therefore a model with 3 components is chosen to work with.  
 
@@ -211,3 +213,4 @@ print(corcoef_aa)
 # ________________________________________________
 ### __Conclusion__
 Using SPARQL and R a PLS model can be created to predict the boiling points of alkanes. The code was easily reused. A different dataset with boiling points would have been a better fit for this assignment, to be able to compare the models better. However, to find out whether a different dataset could be implemented easily, this was not necessary. 
+The correlation coefficients and the values (and thus the graphs) for the RMSEP can change when the script is rerun. This depends on which compounds are randomly distributed over the training and test sets. If most compounds with low boiling points are in the training set, and all compounds with high boiling points in the test set for example, the model has trouble predicting with the same accuracy as when the boiling points are evenly distributed over training and test set. 
