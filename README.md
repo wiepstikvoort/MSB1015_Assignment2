@@ -57,3 +57,5 @@ The version of this manual used for this project, was last updated on October 1,
 ### List of author(s)
 Wiep Stikvoort
 
+### Thank you
+I would like to thank E. Willighagen for his contribution to the SPARQL code. 
