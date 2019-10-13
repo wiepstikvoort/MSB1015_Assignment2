@@ -10,10 +10,12 @@ This project was based on his research. The research entailed to create a partia
 1. Wiener H. Structural Determination of Paraffin Boiling Points. Journal of theAmerican Chemical Society. 1947 Jan;69(1):17–20.
 
 #### Set up for methods
-The SPARQL query asks Wikidata to provide a list of alkanes (compounds that are either an entity or subclass of 'alkanes'):   
-?comp wdtP31/wdt:P279* wd:Q41581   
-and provide their canonical SMILES (P233) under column name CC  
-and their boiling points (P2102) accompanied by the unit that the boiling point is in.  
+The SPARQL query asks Wikidata to:   
+- Provide a list of alkanes (compounds that are either an entity or subclass of 'alkanes'):   
+    - ?comp wdtP31/wdt:P279* wd:Q41581   
+- and provide their canonical SMILES (P233) under column name CC  
+- and their boiling points (P2102) accompanied by the unit that the boiling point is in.  
+
 Two functions were created to convert all boiling points into unit Kelvin. The for loop goes over all boiling points and converts the units that are in Celsius or Fahrenheit to Kelvin. The data retrieved from the query is then split into a test set (20%) and a training set (80%).  
 The SMILES are then parsed to generate a list of IAtomContainer objects, which can be used to evaluate a list of chosen descriptors. The classes of descriptors chosen are:
 - Fragment Complexity (the complexity of the compound)
