@@ -39,7 +39,7 @@ The descriptors were kept the same, to be able to compare both models. This was 
 The code has shown to be reproducible and robust. The model was created in little time and is able to predict an amino acid's mass with a correlation coefficient of >0.97 (depending on the distribution of the data over test and training set). The fact that the descriptors were not chosen to predict a compound's mass probably contributes to the fact that the RMSEP of the model keeps decreasing up to 5 components instead of 3. 
 
 ### How to run the code
-
+To view the results, please download the zip file and open the Assignment_2_MSB1015.nb.html file in your webbrowser. The file shows the results and descriptions of the graphs. To see and run the code, please open Assignment_2_MSB1015.Rmd in R or Rstudio, please mind the commenting in the first chunk to check whether you need to uncomment the installing of the required packages. 
 
 ### Sources used for template code
 The packages RCDK and WikidataQueryServiceR (WDQS) both had a package documentation available online. The documentation files can be found through the links below.
