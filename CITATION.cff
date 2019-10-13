@@ -1,0 +1,8 @@
+cff-version: 2
+message: If you use this software, please cite the following:
+authors:
+  - family-names: Stikvoort
+    given-names: Wiep
+title: MSB1015_Assignment2
+version: v1.0
+date-released: 2019-10-13
