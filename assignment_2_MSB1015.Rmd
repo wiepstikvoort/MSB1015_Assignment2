@@ -1,34 +1,27 @@
 ---
 title: "Assignment_2_MSB1015"
 author: "Wiep Stikvoort"
-date: "October 12, 2019"
+date: "October 13, 2019"
 output: html_notebook
 ---
-rcdk vignet, multilinear regression model for boiling points
-
-get the smiles and boiling points with the wikidataqueryserviceR package
-parse them with the rrdkit or the rcdk
-
-First, we need to load the packages needed for the query and the computations for the regression model. 
-```{r setup, installing packages, echo=FALSE}
-install.packages('rJava')
+# Creating a PLS model for the prediction of boiling points 
+#### i6092796
+#### MSB1015 Scientific Programming
+      
+      
+```{r setup, echo = FALSE, warning = FALSE, message = FALSE}
+# If the packages that are called inside the install.packages function are already installed on your computer, then please comment out the line
+install.packages(c('rJava', 'rcdk', 'pls', 'WikidataQueryServiceR', 'caTools', 'ggplot2'));
 library(rJava)
-install.packages('rcdk')
 library(rcdk)
-install.packages('pls')
 library(pls)
-
-install.packages('WikidataQueryServiceR')
 library(WikidataQueryServiceR)
-install.packages('caTools')
-library('caTools')
-library('ggplot2')
-
+library(caTools)
+library(ggplot2)
 ```
 
 
-This is the correct query:
-``` {r}
+``` {r chunk query, echo = FALSE}
 query <- query_wikidata('SELECT DISTINCT ?comp ?compLabel ?bp ?bpUnit ?bpUnitLabel ?CC
 WHERE {   
 ?comp wdt:P31/wdt:P279* wd:Q41581 ;       
@@ -40,7 +33,7 @@ SERVICE wikibase:label { bd:serviceParam wikibase:language "[AUTO_LANGUAGE],en".
 
 There are still some compounds with their boiling points in degree celcius or fahrenheit. These need to be changed to kelvin:
 
-```{r}
+```{r functions, echo = FALSE}
 fahrenheit_kelvin <- function(fahrenheit) {
   kelvin <- (fahrenheit + 459.67) * (5/9)
   return(kelvin)
@@ -62,13 +55,13 @@ for (i in 1:length(query$bpUnitLabel)) {
 }
 
 # To check whether there are no more strange values, such as divergent units, in the dataset, a plot is created. This plot should show that all points are somewhat in the same range of values. 
-plot.default(query$bp)
+plot.default(query$bp, main = 'The index number of the alkane set out against the boiling point', xlab = 'Index number alkane', ylab = 'Boiling point (in K)')
 
 ```
 
 
 The data is split into test and training set. 80% of the data is used for the training set, the other 20% will then logically be part of the test set. 
-```{r}
+```{r, echo = FALSE}
 data <- sort(sample(nrow(query), nrow(query)*.8))
 training_set<-query[data,]
 
@@ -78,7 +71,7 @@ test_set<-query[-data,]
 
 
 Descriptors 
-```{r}
+```{r, echo = FALSE}
 # the parse.smiles function creates IAtomContainer objects out of SMILES. Kekulise = TRUE disables the function to parse incorrect SMILES. So only correct SMILES are parsed. 
 parsed_smiles <- parse.smiles(training_set$CC, kekulise=TRUE)
 
@@ -94,7 +87,7 @@ training <- cbind(training_set, descs)
 
 ```
 
-``` {r}
+``` {r, echo = FALSE}
 
 
 model <- plsr(bp ~ WPATH  + fragC + apol + WPATH + WPOL + MDEC.12 + nAtom, data = training, validation = "LOO") 
@@ -105,20 +98,22 @@ plot(model, asp = 1, line = TRUE)
 parsed_smiles_test <- parse.smiles(test_set$CC, kekulise = TRUE)
 descs_test <- eval.desc(parsed_smiles_test, descNames)
 
-plot(RMSEP(model))
+plot(RMSEP(model, estimate = "CV"), main = "Number of components per model \nset out against their RMSEP (of boiling points)")
+plot(model, "validation", val.type = "R2", main = "Number of components per model \nset out against their R^2")
 
 test <- cbind(test_set, descs_test)
 error <- RMSEP(model, newdata = test)
 print(error)
-plot(error, legendpos = "topright")
+plot(error, main = "The number of components per model \nset out against the RMSEP for the testset")
 
 predict <- predict(model, ncomp = 3, newdata = test) # 
-plot(predict, test_set$bp)
+plot(predict, test_set$bp, ylab = "Data testset (in K)", xlab = "Predicted values for testset (in K)", main = "Predicted data set out against actual data")
 corcoef <- cor(predict, test_set$bp)
 
 ```
 
-``` {r}
+
+``` {r, echo = FALSE}
 # the query for the amino acids is not much different from the query for the alcanes, except for the fact that mass is now requested instead of boiling points
 
 query_amino_acids <- query_wikidata('SELECT DISTINCT ?comp ?compLabel ?mass ?massUnit ?massUnitLabel ?CC
@@ -130,8 +125,11 @@ psv:P2067/wikibase:quantityUnit  ?massUnit         ] .
 SERVICE wikibase:label { bd:serviceParam wikibase:language "[AUTO_LANGUAGE],en". } }')
 ```
 All compound masses were expressed in the atomic mass unit, so no need for conversions. 
+``` {r}
+plot.default(query_amino_acids$mass, main = 'The index number of the amino acid set out against the boiling point', xlab = 'Index number amino acid', ylab = 'Mass (AMU)')
+```
 
-```{r}
+```{r, echo = FALSE}
 data_aa <- sort(sample(nrow(query_amino_acids), nrow(query_amino_acids)*.8))
 training_set_aa<-query_amino_acids[data_aa,]
 
@@ -140,7 +138,7 @@ test_set_aa<-query_amino_acids[-data_aa,]
 ```
 
 Descriptors 
-```{r}
+```{r, echo = FALSE}
 parsed_smiles_aa <- parse.smiles(training_set_aa$CC, kekulise=TRUE) # changes it into a format IAtomContainer
 
 descNames <- c(
@@ -152,11 +150,9 @@ descNames <- c(
 
 descs_aa <- eval.desc(parsed_smiles_aa, descNames)
 training_aa <- cbind(training_set_aa, descs_aa)
-
 ```
 
-``` {r}
-
+``` {r, echo = FALSE}
 model_aa <- plsr(mass ~ WPATH + fragC + apol + WPATH + WPOL + MDEC.12 + nAtom, data = training_aa, validation = "LOO") 
 
 plot(model_aa, asp = 1, line = TRUE)
@@ -165,12 +161,13 @@ plot(model_aa, asp = 1, line = TRUE)
 parsed_smiles_test_aa <- parse.smiles(test_set_aa$CC, kekulise = TRUE)
 descs_test_aa <- eval.desc(parsed_smiles_test_aa, descNames)
 
-plot(RMSEP(model_aa))
+plot(RMSEP(model_aa, estimate = "CV"),  main = "Number of components per model \nset out against their RMSEP (of mass)")
+plot(model_aa, "validation", val.type = "R2", main = "Number of components per model \nset out against their R^2")
 
 test_aa <- cbind(test_set_aa, descs_test_aa)
 error_aa <- RMSEP(model_aa, newdata = test_aa)
-plot(error_aa, legendpos = "topright")
-print(error_aa)
+plot(error_aa)
+print(error_aa, main = "The number of components per model \nset out against the RMSEP for the testset")
 
 
 predict_aa <- predict(model_aa, ncomp = 5, newdata = test_aa) # 
