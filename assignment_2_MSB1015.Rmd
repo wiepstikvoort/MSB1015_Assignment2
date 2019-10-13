@@ -35,7 +35,7 @@ SERVICE wikibase:label { bd:serviceParam wikibase:language "[AUTO_LANGUAGE],en".
 ```
 However, not all boiling points are in the same unit. After converting the boiling points that are in Fahrenheit or Celsius to Kelvin, the data can be checked. To check whether there are no more strange values, such as divergent units, in the dataset, a plot is created. This plot should show that all points are somewhat in the same range of values. 
 
-```{r functions, echo = FALSE}
+```{r chunk functions and conversions, echo = FALSE}
 # the following functions check whether a value has the unit of Fahrenheit or Celsius. If so, the functions insert the boiling point in kelvin inside the data for boiling points. 
 fahrenheit_kelvin <- function(fahrenheit) {
   kelvin <- (fahrenheit + 459.67) * (5/9)
@@ -66,7 +66,7 @@ As can be seen in the graph above there is a nice distribution of boiling points
 
 ### __SMILES and descriptors__
 The data is split into test and training set. 80% of the data is used for the training set, the other 20% will then logically be part of the test set. 
-```{r, echo = FALSE}
+```{r chunk splitting test and training, echo = FALSE}
 data <- sort(sample(nrow(query), nrow(query)*.8))
 training_set<-query[data,]
 
@@ -74,7 +74,7 @@ training_set<-query[data,]
 test_set<-query[-data,]
 ```
 Chemical properties, descriptors, of the alkanes are needed to base the PLS model on. The SMILES (Simplified Molecular-Input Line-Entry System) of the alkanes were needed to find and calculate the descriptors. The classes used for these descriptors are discussed in the README.md file in the repository. 
-```{r, echo = FALSE}
+```{r chunk parsing smiles and retrieving descriptors, echo = FALSE}
 # the parse.smiles function creates IAtomContainer objects out of SMILES. Kekulise = TRUE disables the function to parse incorrect SMILES. So only correct SMILES are parsed. 
 parsed_smiles <- parse.smiles(training_set$CC, kekulise=TRUE)
 
@@ -93,7 +93,7 @@ training <- cbind(training_set, descs)
 The descriptors and processed data are now within a data frame, from which can be worked to create the prediction model.  The function plsr (from the pls package) was used to create the model. The model can be visualized in a graph, as shown below. The x axis depicts the measured data, so the true boiling points, and the y axis depicts the predicted boiling points based on the model.
 The model needs to be accurate, yet as simple as possible. The number of components can play a role here. To see how many components the model needs, a graph where the number of components are set out against the Root Mean Square Error of Prediction (RMSEP), as well as the number of components set out against R^2, can help. 
 
-``` {r, echo = FALSE}
+``` {r chunk creating pls model, echo = FALSE}
 
 model <- plsr(bp ~ WPATH  + fragC + apol + WPATH + WPOL + MDEC.12 + nAtom, data = training, validation = "LOO") 
 
@@ -106,7 +106,7 @@ The RMSEP and R^2 graphs both show that 3 components yields a model that would n
 ### __Testing the PLS model__  
 The input for the PLS model needs to have the same descriptors as were used in the creation of the model. Therefore, the descriptors, based on the SMILES, were retrieved for the test set as well. This was used as input for the testing of the model. The model uses the descriptors to predict the boiling points of the alkanes.  
 The table shows the RMSEP per number of components. The graph below shows the same values. Just as the training set, the test set shows that 3 components is the optimal number for this model, based on accuracy and simplicity. 
-``` {r, echo = FALSE}
+``` {r chunk testing the pls model, echo = FALSE}
 parsed_smiles_test <- parse.smiles(test_set$CC, kekulise = TRUE)
 descs_test <- eval.desc(parsed_smiles_test, descNames)
 
@@ -117,7 +117,7 @@ print(error)
 plot(error, main = "The number of components per model \nset out against the RMSEP for the testset")
 ```
 To predict the boiling points based on the descriptors, the function predict() is used. The values retrieved from the prediction were set out against the true data, and shown in the graph below. The points are in an approximately straight line, meaning that the predicted values and true values are very close together, and that their are no biases as to where the boiling points are predicted best (low or high boiling points). 
-```{r, echo = FALSE}
+```{r chunk using the model to predict, echo = FALSE}
 predict <- predict(model, ncomp = 3, newdata = test) # 
 plot(predict, test_set$bp, ylab = "Data testset (in K)", xlab = "Predicted values for testset (in K)", main = "Predicted data set out against actual data")
 corcoef <- cor(predict, test_set$bp)
@@ -126,11 +126,12 @@ The correlation coefficient between the true boiling points and the predicted bo
 ``` {r, echo = FALSE}
 print(corcoef)
 ```
-# _____________________________________________________________
+# ________________________________________________
 ## __Amino acids and their masses__
+### __Loading and processing of the data__
 To check the reproducibility of the code, another model was created by almost copying the code for the PLS model that predicts the alkane boiling points (further explanation is given in the README.md file in the repository). All graphs and tables were reproduced, based on the same theory and same function, but different data. All graphs below were based on the amino acid data. 
 
-``` {r, echo = FALSE, message = FALSE}
+``` {r chunk query for aa, echo = FALSE, message = FALSE}
 # the query for the amino acids is not much different from the query for the alkanes, except for the fact that mass is now requested instead of boiling points
 
 query_amino_acids <- query_wikidata('SELECT DISTINCT ?comp ?compLabel ?mass ?massUnit ?massUnitLabel ?CC
@@ -141,13 +142,14 @@ p:P2067 [ ps:P2067 ?mass ;
 psv:P2067/wikibase:quantityUnit  ?massUnit         ] .  
 SERVICE wikibase:label { bd:serviceParam wikibase:language "[AUTO_LANGUAGE],en". } }')
 ```
-The amino acids and their masses were loaded from WikiData using SPARQL. All compound masses were expressed in the atomic mass unit (which is equivalent to g/mol), so no need for conversions. 
+The amino acids (aa) and their masses were loaded from WikiData using SPARQL. All compound masses were expressed in the atomic mass unit (which is equivalent to g/mol), so no need for conversions. 
 ``` {r chunk, echo = FALSE}
 plot.default(query_amino_acids$mass, main = 'The index number of the amino acid \nset out against the boiling point', xlab = 'Index number amino acid', ylab = 'Mass (AMU)')
 ```
 The graph seemed to show some outliers. However, after a small literature research, these amino acids turned out to simply be a little heavier than most other amino acids. 
 
-```{r, echo = FALSE}
+### __SMILES and descriptors__
+```{r chunk splitting test and training aa, echo = FALSE}
 data_aa <- sort(sample(nrow(query_amino_acids), nrow(query_amino_acids)*.8))
 training_set_aa<-query_amino_acids[data_aa,]
 
@@ -156,7 +158,7 @@ test_set_aa<-query_amino_acids[-data_aa,]
 ```
 
 The same methods were implemented as were described and used for the creation of the alkane boiling points PLS model, unless otherwise specified. The one main thing that was changed were the variable names to prevent confusion. 
-```{r, echo = FALSE}
+```{r chunk parsing smiles and retrieving descriptors for aa, echo = FALSE}
 parsed_smiles_aa <- parse.smiles(training_set_aa$CC, kekulise=TRUE) # changes it into a format IAtomContainer
 
 descNames <- c(
@@ -169,9 +171,10 @@ descNames <- c(
 descs_aa <- eval.desc(parsed_smiles_aa, descNames)
 training_aa <- cbind(training_set_aa, descs_aa)
 ```
+### __Creating the PLS model__
 The model is visualized in the same manner as is shown for the alkane model:
 
-``` {r, echo = FALSE}
+``` {r chunk creation of pls model for aa, echo = FALSE}
 model_aa <- plsr(mass ~ WPATH + fragC + apol + WPATH + WPOL + MDEC.12 + nAtom, data = training_aa, validation = "LOO") 
 
 plot(model_aa, asp = 1, line = TRUE, xlab = "measured (in AMU)", ylab = "predicted (in AMU)" )
@@ -182,7 +185,8 @@ plot(model_aa, "validation", val.type = "R2", main = "Number of components per m
 ```
 The R^2 graph shows an increase until 5 components are included in the model. The same can be seen from the RMSEP graph, the RMSEP decreases until 5 components. This is different than the 3 components used for the alkane model. This can probably be attributed to the fact that the descriptors used for both models were chosen, based on the idea to predict boiling points from chemical properties, and not to predict their masses. 
 
-```{r, echo = FALSE}
+### __Testing the PLS model__ 
+```{r chunk testing the pls model for aa, echo = FALSE}
 parsed_smiles_test_aa <- parse.smiles(test_set_aa$CC, kekulise = TRUE)
 descs_test_aa <- eval.desc(parsed_smiles_test_aa, descNames)
 
@@ -193,7 +197,7 @@ print(error_aa, main = "The number of components per model \nset out against the
 ```
 
 The graph showing the predicted masses and the true masses of the amino acids, shown below, shows a linear behavior. The points do not allign as neatly as they did for the alkane boiling points model however. This can be due to the fact that the dataset is smaller, or because there are better descriptors to be used to create this PLS model.
-```{r, echo = FALSE}
+```{r chunk using the pls model to predict masses for aa, echo = FALSE}
 
 predict_aa <- predict(model_aa, ncomp = 5, newdata = test_aa) # 
 plot(predict_aa, test_set_aa$mass,  ylab = "Data testset (in AMU)", xlab = "Predicted values for testset (in AMU)", main = "Predicted data set out against actual data")
@@ -204,5 +208,6 @@ corcoef_aa <- cor(predict_aa, test_set_aa$mass)
 print(corcoef_aa)
 
 ```
+# ________________________________________________
 ### __Conclusion__
 Using SPARQL and R a PLS model can be created to predict the boiling points of alkanes. The code was easily reused. A different dataset with boiling points would have been a better fit for this assignment, to be able to compare the models better. However, to find out whether a different dataset could be implemented easily, this was not necessary. 
