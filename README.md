@@ -4,8 +4,10 @@ Welcome to the repository of Assignment 2 for the course MSB1015 'Scientific Pro
 
 ### Research question
 #### Background information
-Harry Wiener wrote a paper on the correlation between chemical structure of compounds and their physical properties. He used the polarity number p, the pairs of carbon atoms which are separated by three C-C bonds, and the path number w, the sum of the distances between any two carbon atoms in the molecule in terms of C-C bonds, to create a prediction model. In this model p and w are descriptors of the molecules that he wanted to predict the boiling points of. Ofcourse back then there were less boiling points and descriptors of compounds known.  
+Harry Wiener wrote a paper on the correlation between chemical structure of compounds and their physical properties (1). He used the polarity number p, the pairs of carbon atoms which are separated by three C-C bonds, and the path number w, the sum of the distances between any two carbon atoms in the molecule in terms of C-C bonds, to create a prediction model. In this model p and w are descriptors of the molecules that he wanted to predict the boiling points of. Ofcourse back then there were less boiling points and descriptors of compounds known.  
 This project was based on his research. The research entailed to create a partial least squares (pls) model to predict the boiling points of alkanes through the use of SPARQL to query for chemical properties of alkanes on Wikidata, in an R markdown notebook. However, nowadays we have the luxury to choose more descriptors and create a model based on larger datasets. 
+
+1. Wiener H. Structural Determination of Paraffin Boiling Points. Journal of theAmerican Chemical Society. 1947 Jan;69(1):17–20.
 
 #### Set up for methods
 The SPARQL query asks Wikidata to provide a list of alkanes (compounds that are either an entity or subclass of 'alkanes'):   
